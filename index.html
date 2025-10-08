@@ -54,6 +54,37 @@
 
     const parser = new PublicGoogleSheetsParser(spreadsheetId);
 
+	function formatDate(dateValue) {
+	  if (!dateValue) return "";
+
+	  // "Date(YYYY,MM,DD)" formatını kontrol et
+	  const dateMatch = /^Date\((\d{4}),\s*(\d{1,2}),\s*(\d{1,2})\)$/.exec(dateValue);
+	  let date;
+
+	  if (dateMatch) {
+		const [_, year, month, day] = dateMatch;
+		date = new Date(Number(year), Number(month), Number(day)); // Ay 0 tabanlı
+	  } else {
+		date = new Date(dateValue);
+	  }
+
+	  // Geçerli değilse orijinal metni döndür
+	  if (isNaN(date.getTime())) return dateValue;
+
+	  // Seçtiğimiz format: "10 Ekim - Cuma"
+	return (
+	  date.toLocaleDateString("tr-TR", {
+		day: "numeric",
+		month: "long"
+	  }) +
+	  " - " +
+	  date.toLocaleDateString("tr-TR", {
+		weekday: "long"
+	  })
+	);
+	}
+
+
     function getBadgeClass(status) {
       if (!status) return "secondary";
       switch(status.trim().toLowerCase()) {
@@ -74,7 +105,7 @@
           tr.innerHTML = `
             <td>${item.ders || ""}</td>
             <td>${item.ödev || ""}</td>
-            <td>${item.sontarih || ""}</td>
+            <td>${formatDate(item.sontarih)}</td>
             <td>${item.sorumlu || ""}</td>
             <td><span class="badge bg-${getBadgeClass(item.durum)}">${item.durum || ""}</span></td>
           `;
